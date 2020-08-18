@@ -7,8 +7,21 @@ import org.junit.Test;
 import Ex1.Monom;
 import Ex1.function;
 
-public class MonomTest 
-{
+public class MonomTest1 {
+	@Test
+	public void testMonomString() 
+	{
+		String monom = "98.0";
+		String monom2 = "-5.0x";
+		String monom3 = "-5.0x^3";
+		Monom m1 = new Monom(monom);
+		Monom m2 = new Monom(monom2);
+		Monom m3 = new Monom(monom3);
+		assertEquals(monom, m1.toString());
+		assertEquals(monom2, m2.toString());
+		assertEquals(monom3, m3.toString());
+	}
+
 	@Test
 	public void testMonomDoubleInt() 
 	{
@@ -40,6 +53,9 @@ public class MonomTest
 		Monom m1 = new Monom(2,1);
 		double y = m1.f(3);
 		assertTrue(y==6);
+		Monom m2=new Monom(2,2);
+		double y1=m2.f(y);
+		assertTrue(y1==72);
 	}
 
 	@Test
@@ -49,16 +65,7 @@ public class MonomTest
 		assertTrue(m1.isZero()==true);
 	}
 
-	@Test
-	public void testMonomString() 
-	{
-		String monom = "2.0x^1";
-		String monom2 = "-5.0x^1";
-		Monom m1 = new Monom(monom);
-		Monom m2 = new Monom(monom2);
-		assertEquals(monom, m1.toString());
-		assertEquals(monom2, m2.toString());
-	}
+	
 
 	@Test
 	public void testAdd() 
@@ -84,7 +91,7 @@ public class MonomTest
 	public void testToString() 
 	{
 		String monom_str = "5.0x^3";
-		String monom_str2 = "-8.0x^1";
+		String monom_str2 = "-8.0x";
 		Monom m1 = new Monom(monom_str);
 		Monom m2 = new Monom(monom_str2);
 		assertEquals(monom_str, m1.toString());
@@ -115,4 +122,5 @@ public class MonomTest
 		func = func.initFromString(func_str);
 		assertEquals(func_str, func.toString());
 	}
+
 }

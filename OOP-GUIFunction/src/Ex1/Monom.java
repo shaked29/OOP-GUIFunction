@@ -1,24 +1,27 @@
 package Ex1;
 import java.util.Comparator;
 /**
- * This class represents a simple "Monom" of shape a*x^b, where a is a real number and a is an integer (summed a none negative), 
+ * This class represents a simple "Monom" of shape ax^b, where a is a real number and a is an integer (summed a none negative), 
  * see: https://en.wikipedia.org/wiki/Monomial 
  * The class implements function and support simple operations as: construction, value at x, derivative, add and multiply. 
- * @author Boaz
- *
+ * @author Shaked Aviad
+ * 
  */
 public class Monom implements function
 {
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 1L;
 	public static final Monom ZERO = new Monom(0,0);
 	public static final Monom MINUS1 = new Monom(-1,0);
 	public static final double EPSILON = 0.0000001;
 	public static final Comparator<Monom> _Comp = new Monom_Comperator();
 	public static Comparator<Monom> getComp() {return _Comp;}
-	public Monom(double a, int b)
+	/* constructors */
+	public Monom() {
+		this.set_coefficient(0);
+		this.set_power(0);
+	}	
+public Monom(double a, int b)
 	{
 		this.set_coefficient(a);
 		this.set_power(b);
@@ -38,90 +41,115 @@ public class Monom implements function
 	 * @return
 	 */
 	public Monom derivative() {
-		if(this.get_power()==0) {return getNewZeroMonom();}
-		return new Monom(this.get_coefficient()*this.get_power(), this.get_power()-1);
+		if(this.get_power()==0) 
+			return getNewZeroMonom();
+
+		return
+				new Monom(
+						this.get_coefficient()*this.get_power(), this.get_power()-1
+						);
 	}
+
+	/**
+	 * @param x a number to calculate the mathematics value for 
+	 * 
+	 * @return the Monom value in the specific x
+	 */
 	public double f(double x) {
-		double ans=0;
-		double p = this.get_power();
-		ans = this.get_coefficient()*Math.pow(x, p);
-		return ans;
+		return this.get_coefficient()*Math.pow(x, this.get_power());
 	} 
-	public boolean isZero() {return this.get_coefficient() == 0;}
-	// ***************** add your code below **********************
+	/**
+	 * @return true if the coefficient is less then {@value #EPSILON}, false otherwise
+	 */
+	public boolean isZero() {return this.get_coefficient() < this.EPSILON;}
+
+	/**
+	 * Constructs Monom from a String in form ax^b:
+	 * 			a: double, -, + or empty coefficient. 
+	 * 			x: low or capital x. 
+	 * 			b: natural number as power (and '^' before power if needed). 
+	 * @param s is a proper String representation of Monom
+	 */
 	public Monom(String s) 
 	{
-		double doubleCoeff = 0; //the variable we will convert our string into
-		String coeff = "";
-		int pow = 0;
-		if(s.contains("x") == true) //'x' is in the string.
-		{
-			coeff = s.substring(0, s.indexOf("x")); //take the chars before the "x".
-			if(coeff.equals("") || coeff.equals("+")) doubleCoeff = 1.0; //there is no real number attached to "x".
-			else if(coeff.charAt(0) == '-' && coeff.length() == 1) doubleCoeff = -1.0; //only '-' appears
-			else doubleCoeff = Double.parseDouble(coeff); //converting the chars into doubles.
-			if(s.contains("^") == true) //'^' is in the string.
-			{
-				pow = Integer.parseInt(s.substring(s.indexOf("^")+1)); //take the chars after the "^" and  
-				//converting them into integers.
-			}
-			else //'^' is not in the string.
-			{
-				pow = 1;
-			}
-		}
-		else //only a real number appears
-		{
-			doubleCoeff = Double.parseDouble(s); //converting the chars into doubles.
-			pow = 0;
-		}
-		this.set_coefficient(doubleCoeff);
+		s=s.toLowerCase();
+		double cof=this.findCofficient(s);
+		int pow=this.findPower(s);
+
+		this.set_coefficient(cof);
 		this.set_power(pow);
+
 	}
-	public void add(Monom m) //adding between two monoms.
+
+	/**
+	 * add this Monom with the given Monom form the same power
+	 * [(ax^b)+(mx^b) = (a+m)x^(b)] 
+	 * @param d is other Monom to multiply with.
+	 * @throws RuntimeException when the powers not equals.
+	 */
+	public void add(Monom m) 
 	{
-		if(m.get_power() == this.get_power()) //checking if the powers are equals
+		if(m.get_power() == this.get_power()) 
 		{
 			this.set_coefficient(m.get_coefficient() + this.get_coefficient());
 		}
-		else throw new RuntimeException("Error while trying to add this Monom, the powers are not equals.");
+		else
+			throw new RuntimeException("adding differente powers isn't allowd "
+					+ "(" + get_power() +", "+ m.get_power() + ")");
 	}
-	public void multiply(Monom d) //multiplying between two monoms.
+	/**
+	 * multiply this Monom with the given Monom 
+	 * [(ax^b)*(mx^n) = (a*m)x^(b+n)] 
+	 * @param d is other Monom to multiply with
+	 */
+	public void multiply(Monom d) 
 	{
-		this.set_coefficient(d.get_coefficient() * this.get_coefficient()); //multiplying between the two monoms coefficients.
-		if(this.get_power() != 0 || d.get_power() != 0) this.set_power(this.get_power() + d.get_power()); //in case either of the monoms power
-		//is not equal to 0.
+		this.set_coefficient(d.get_coefficient() * this.get_coefficient()); 
+		this.set_power(this.get_power() + d.get_power());
 	}
 	public String toString() {
-		String ans = "";
-		if(this.get_power() == 0) ans = this.get_coefficient()+""; //in case power is 0
-		else ans = this.get_coefficient()+"x^"+this.get_power(); 
+		String ans="";
+		if(this.get_coefficient()==-1) {
+			ans+='-';
+			if(this.get_power()==0)
+				ans+="1";			
+		}else if(this.get_coefficient()!=1||this.get_power()==0)
+			ans+=this.get_coefficient();
+		if(this.get_power()>0)ans+="x";
+		if(this.get_power()>1)ans+="^"+this.get_power();
 		return ans;
 	}
-	public boolean equals(Object m) //checking if two monoms are equal.
+	
+	/**
+	 * @param o - a Monom to compare
+	 * @return true if the powers are equals 
+	 * and the coefficient difference is less then {@value #EPSILON}, false otherwise
+	 */
+	public boolean equals(Object m) 
 	{
-		if(m instanceof Monom)
-		{
-			if(((Monom) m).get_power() == this.get_power())
-			{
-				if(((Monom) m).get_coefficient() == this.get_coefficient()) return true;
-				else if(((Monom) m).get_coefficient() + EPSILON > this.get_coefficient() && ((Monom) m).get_coefficient() < this.get_coefficient()) return true;
-				else if(((Monom) m).get_coefficient() - EPSILON < this.get_coefficient() && ((Monom) m).get_coefficient() > this.get_coefficient()) return true;
-			}
+		if(m instanceof Polynom ||m instanceof ComplexFunction )
+			return m.equals(this);
+		if (m instanceof Monom) {
+			Monom m1=(Monom)m;
+			if(this.isZero()&&m1.isZero())
+				return true;
+			return this.get_power()==m1.get_power()&&
+					Math.abs(this.get_coefficient()-m1.get_coefficient())<this.EPSILON;
 		}
-		return false; //return false we the coefficient and power are not equals.
+			return false;
+		
 	}
 
-	/** This method creates a deep copy of a monom. */
-	public Monom my_copy() 
-	{
-		Monom p = new Monom(this._coefficient, this._power);
-		return p;
+	
+	/** This method creates a deep copy of monom 
+	 *  @return  new Monom 
+	 */ 
+	public Monom Copy() {
+		return new Monom(this._coefficient, this._power);
 	}
-	/** This method creates a deep copy of monom and return him as function */ 
 	public function copy()
 	{
-		return this.my_copy();
+		return Copy();
 	}
 	/** This method creates a monom from string and return him as function */
 	@Override
@@ -142,9 +170,48 @@ public class Monom implements function
 	private static Monom getNewZeroMonom() {return new Monom(ZERO);}
 	private double _coefficient; 
 	private int _power;
-	/** Default constructor sets the monom to zero monom. */
-	public Monom() {
-		this.set_coefficient(0);
-		this.set_power(0);
+	private int findPower(String s) {
+		int p=0;
+		if(!s.contains("x"))
+			p=0;
+		else if(!s.contains("^")) {
+			if(s.indexOf('x')!=s.length()-1)
+				throw new RuntimeException(s+"isn't a polynom ans is an invalid coefficient");
+			p=1;
+		}
+		else p=this.parseInt(s.substring(s.indexOf('^')+1));
+		return p;
+	}
+	private double findCofficient(String s) {
+		if(s.indexOf('x')!=s.lastIndexOf('x'))
+			throw new RuntimeException(s+"isn't a polynom ans is an invails cofficient");
+		//find coefficient
+		double cof=0;
+		if(!s.contains("x"))
+			cof=parseDouble(s);
+		else if(s.indexOf('x')==1) {
+			char op=s.charAt(0);
+			if(op=='-')cof=-1;
+			else if(op=='+')cof=1;
+			else cof=this.parseDouble(s.substring(0, s.indexOf('x')));	
+		} 
+		else cof =this.parseDouble(s.substring(0, s.indexOf('x')));	
+
+		return cof;
+	} 
+	private int parseInt(String s) {
+		try {
+			return Integer.parseInt(s);
+		} catch (Exception e) {
+			throw new RuntimeException("'" +s + "' isn't a integer number and is"
+					+ " an invalid power");		
+		}
+	}
+	private double parseDouble(String s) {
+		try {
+			return Double.parseDouble(s);
+		}catch (Exception e) {
+			throw new RuntimeException(s+"isn't a flaot number and is an invaild coefficient");
+		}
 	}
 }

@@ -83,7 +83,7 @@ public class Polynom implements Polynom_able{
 		}
 		while (it.hasNext()) {
 			hold = it.next();
-			temp = hold.my_copy();
+			temp = hold.Copy();
 			if (temp.get_power() == m1.get_power()) {
 				temp.add(m1);
 				it.remove();
@@ -179,12 +179,12 @@ public class Polynom implements Polynom_able{
 		if (thist.hasNext() && p1t.hasNext()) {
 			while (thist.hasNext()) {
 				Monom x = thist.next();
-				temp = x.my_copy();
+				temp = x.Copy();
 				Iterator<Monom> p1t2 = p1.iteretor();
 				while (p1t2.hasNext()) {
-					temp = x.my_copy();
+					temp = x.Copy();
 					Monom y = p1t2.next();
-					p1temp = y.my_copy();
+					p1temp = y.Copy();
 					temp.multiply(p1temp);
 					ans.add(temp);
 					p1temp = zero;

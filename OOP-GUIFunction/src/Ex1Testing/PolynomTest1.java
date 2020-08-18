@@ -9,8 +9,7 @@ import Ex1.Polynom;
 import Ex1.Polynom_able;
 import Ex1.function;
 
-public class PolynomTest 
-{
+public class PolynomTest1 {
 	@Test
 	public void testPolynomString() 
 	{
@@ -173,4 +172,5 @@ public class PolynomTest
 		func = func.initFromString(poly_str);
 		assertEquals(poly_str, func.toString());
 	}
+
 }

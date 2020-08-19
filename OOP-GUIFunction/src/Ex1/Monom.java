@@ -61,7 +61,7 @@ public Monom(double a, int b)
 	/**
 	 * @return true if the coefficient is less then {@value #EPSILON}, false otherwise
 	 */
-	public boolean isZero() {return this.get_coefficient() < this.EPSILON;}
+	public boolean isZero() {return Math.abs(this.get_coefficient()) < this.EPSILON;}
 
 	/**
 	 * Constructs Monom from a String in form ax^b:

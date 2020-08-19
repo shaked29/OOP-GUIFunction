@@ -1,250 +1,267 @@
 package Ex1;
-public class ComplexFunction implements complex_function
-{
-	private static final long serialVersionUID = 1L;
-	private function _left;
-	private function _right;
-	private Operation _op;
-	//A constructor that gets a function as an argument.
-	public ComplexFunction(function f1) 
-	{
-		this._left = f1;
-		this._right = null;
-		this._op = Operation.None;
-	}
+/**
+ * This class represent a Complex function form:
+ * Operation(function, function) when function is a Monom, Polynom or ComplexFunction.
+ * with add, multiply, divide and more functionality.
+ * @author Shaked Aviad
+ *
+ */
+public class ComplexFunction implements complex_function {
+	private function left;
+	private function right;
+	private Operation op;
 	
-	//A constructor that gets an String operation & two functions as an argument.
-	public ComplexFunction(String operation, function f1, function f2)
-	{
-		this._left = f1;
-		this._right = f2;
-		switch(operation.toLowerCase())
-		{
-		case "plus": this._op = Operation.Plus; break;
-		case "mul": this._op = Operation.Times; break;
-		case "times": this._op = Operation.Times; break;
-		case "min": this._op = Operation.Min; break;
-		case "max": this._op = Operation.Max; break;
-		case "div": this._op = Operation.Divid; break;
-		case "divid": this._op = Operation.Divid; break;
-		case "comp": this._op = Operation.Comp; break;
-		case "none": 
-		{
-			if(f1 !=null && f2 != null)
-			{
-				this._op = Operation.None;
-				throw new RuntimeException("No operation between the two functions, illegal complex function behavior behaviour."); 
-			}
-		}
-		//In case of error.
-		default:
-		{
-			this._op = Operation.Error;
-			throw new RuntimeException("Unknown or unsupported operation");
-		}
-		}
+	public ComplexFunction() {}
+	/**
+	 * Constructor that gets one function (the left function) and initialize None Operation.
+	 * this ComplexFunction will be equals to f
+	 * @param f - the left function.
+	 */
+	public ComplexFunction(function f) {
+		if (f == null)
+			throw new RuntimeException("Function argument can't be null");
+		this.left = f.copy();
+		this.op = Operation.None;
 	}
-	public ComplexFunction() {
+	/**
+	 * Constructor that gets operation and two functions.
+	 * @param op - the Operation.
+	 * @param f1 - the left function.
+	 * @param f2 - the right function.
+	 */
+	public ComplexFunction(Operation op, function f1, function f2) {
+		if (f1 == null)
+			throw new RuntimeException("Left function argument can't be null");
+		this.left = f1.copy();
+		this.right = f2 == null ? null : f2.copy();
+		this.op = op;
+
+		if (f2 == null && op == null)
+			this.op = Operation.None;
 	}
-	public ComplexFunction(Operation op, function f1, function f2) 
-	{
-		this(op.toString(), f1, f2);
+	/**
+	 * Constructor that gets operation represents by string and two functions.
+	 * @param s - the Operation String.
+	 * @param f1 - left function.
+	 * @param f2 - right function.
+	 */
+	public ComplexFunction(String s, function f1, function f2) {
+		this(stringtoOperation(s), f1, f2);
 	}
 
 	@Override
-	public double f(double x)
-	{
-		double answer = 0;
-		switch(this._op)
-		{
-		case Plus: answer = this._left.f(x) + this.right().f(x); break;
-		case Times: answer = this._left.f(x) * this._right.f(x); break;
-		case Min: answer = Math.min(this._left.f(x), this._right.f(x)); break;
-		case Max: answer = Math.max(this._left.f(x), this._right.f(x)); break;
-		case Divid: 
-		{
-			if(this._right.f(x)==0) throw new RuntimeException("Cannot divide by zero"); 
-			else answer = this._left.f(x) / this._right.f(x); break;
-		}
+	public double f(double x) {
+
+		switch (op) {
+
+		case Plus:
+			return left.f(x) + right.f(x);
+		case Times:
+			return left.f(x) * right.f(x);
+		case Divid:
+			double rightF = right.f(x);
+			if(rightF == 0)
+				throw new ArithmeticException("/ by zero");
+			return left.f(x) / rightF;
+		case Max:
+			return Math.max(left.f(x), right.f(x));
+		case Min:
+			return Math.min(left.f(x), right.f(x));
 		case Comp:
-		{
-			if(this._right == null) answer = this._left.f(x); 
-			else answer = this._left.f(this._right.f(x)); break;
+			return (left.f(right.f(x)));
+		case None:
+			return left.f(x);
+
+		case Error:
+
+		default:
+			throw new RuntimeException("Operation unknown");
 		}
-		case None: if(this._right == null) answer = this._left.f(x);
-		else throw new RuntimeException("There is no operation between the functions");
-		default: break;
-		}
-		return answer;
 	}
+
 	@Override
-	public function initFromString(String text) 
-	{
-		text = text.toLowerCase();
-		text = remove_spaces(text);
-		//We cut off the prefix "f(x)= ".
-		if(text.length() > 6 && text.substring(0, 6).equals("f(x)= ")) text = text.substring(6);
-		else if(text.length() > 5 && text.substring(0, 5).equals("f(x)=")) text = text.substring(5);
-		
-		//In case there is no operation and text represent only a polynom.
-		if (text.indexOf('(') == -1 && text.indexOf(')') == -1) 
-		{ 
-			function func = new Polynom (text);
-			return func;
-		}
-		//This algorithm will go over the text in a while loop and will count the open brackets and the close brackets. if we encounter a comma and the
-		//difference between them is equal to 1 then we know we are exactly at the middle of the given text which represent a function.
-		int middle = 0;
-		int index = 0;
-		int open_brackets = 0;
-		int close_brackets = 0;
-		while(text.length() > index)
-		{
-			if(text.charAt(index) == '(') open_brackets++;
-			else if(text.charAt(index) == ')') close_brackets++;
-			int diff = open_brackets - close_brackets;
-			if(diff == 1 && text.charAt(index) == ',')
-			{
-				middle = index;
-				break;
+	public function initFromString(String s) {
+		s=s.replaceAll(" ", "");
+		if(s.charAt(s.length()-1) == ')') {
+			Operation op;
+			try {
+				op = stringtoOperation(s.substring(0, s.indexOf('(')));				
+			} catch (IndexOutOfBoundsException e) {
+				throw new RuntimeException("Invalid string - not contain '('");
 			}
-			index++;
-		}
-		String operation = text.substring(0, text.indexOf("("));
-		function left_side = initFromString(text.substring(text.indexOf("(")+1, middle));
-		function right_side = initFromString(text.substring(middle+1, text.length()-1));
-		return new ComplexFunction(operation, left_side, right_side);
-	}
-	@Override
-	public function copy()
-	{
-		String to_send = toString();
-		function new_func = initFromString(to_send);
-		return new_func;
-	}
-	//This method will return true if the object inside the argument is one of three possible scenarios:
-	//1.If the object is an instance of ComplexFunction and both functions and the operation is equal to the ComplexFunction that
-	//call for the method.
-	//2.If the object is an instance of Monom and in cases of "plus(x,x) == 2x" or "multiply(x,x) == x^2"
-	//3.Same as 2, but applying on Polynom this time.
-	@Override
-	public boolean equals(Object obj)
-	{
-		if(obj instanceof ComplexFunction)
-		{
-			if(this._left == ((ComplexFunction) obj).left() && this._right == ((ComplexFunction) obj).right() && this._op == ((ComplexFunction) obj).getOp()) return true;
-			else if(this._left == ((ComplexFunction) obj).right() && this._right == ((ComplexFunction) obj).left() && this._op == ((ComplexFunction) obj).getOp()) return true;
-		}
-		else if(obj instanceof Monom)
-		{
-			if(this._op == Operation.Plus)
-			{
-				Monom m1 = new Monom((Monom) this._left);
-				m1.add((Monom) this._right);
-				if(m1.equals(obj)) return true;
+
+			int count = 0;
+			int index = -1; 
+			for (int i = s.indexOf('(')+1; i < s.length()-1 && index == -1; i++) {
+				if(s.charAt(i) == '(')
+					count++;
+				else if(s.charAt(i) == ')')
+					count--;
+				else if(s.charAt(i) == ',' && count == 0)
+					index = i;
 			}
-			else if(this._op == Operation.Times)
-			{
-				Monom m1 = new Monom((Monom) this._left);
-				m1.multiply((Monom) this._right);
-				if(m1.equals(obj)) return true;
-			}
+
+			if(index == -1)
+				throw new RuntimeException("Invalid string - can't find ',' in the correct place");
+
+			function left = initFromString(s.substring(s.indexOf('(')+1, index));
+			function right = initFromString(s.substring(index+1, s.length()-1));
+
+			return new ComplexFunction(op, left, right);
+		} else {
+			return new Polynom(s);
 		}
-		else if(obj instanceof Polynom)
-		{
-			if(this._op == Operation.Plus)
-			{
-				Polynom p = new Polynom();
-				p.add((Polynom_able) this._left);
-				if(p.equals(obj)) return true;
-			}
-			else if(this._op == Operation.Times)
-			{
-				Polynom p = new Polynom();
-				p.add((Polynom_able) this._left);
-				if(p.equals(obj)) return true;
-			}
+	}
+
+	@Override
+	public function copy() {
+		function left = this.left.copy();
+		function right = this.right == null ? null : this.right.copy();
+		return new ComplexFunction(this.op, left, right);
+	}
+
+	@Override
+	public void plus(function f1) {
+		makeCF(f1, Operation.Plus);
+	}
+
+	@Override
+	public void mul(function f1) {
+		makeCF(f1, Operation.Times);
+	}
+
+	@Override
+	public void div(function f1) {
+		makeCF(f1, Operation.Divid);
+	}
+
+	@Override
+	public void max(function f1) {
+		makeCF(f1, Operation.Max);
+	}
+
+	@Override
+	public void min(function f1) {
+		makeCF(f1, Operation.Min);
+	}
+
+	@Override
+	public void comp(function f1) {
+		makeCF(f1, Operation.Comp);
+	}
+
+	@Override
+	public function left() {
+		return left;
+	}
+
+	@Override
+	public function right() {
+		return right;
+	}
+
+	@Override
+	public Operation getOp() {
+		return op;
+	}
+	
+	private void makeCF(function f, Operation op) {
+		if (f == null)
+			throw new RuntimeException("Function argument can't be null");
+		function tmp = f.copy();
+		if (this.op != Operation.None)
+			this.left = copy();
+		this.right = tmp;
+		this.op = op;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof function))
+			return false;
+
+		function fun = (function)obj;
+
+		for (int i = -20; i < 20; i++) {
+			if(i==0)
+				continue; 
+			if(!compareDouble(f(i), fun.f(i))) 
+				return false;
 		}
-		return false;
+		return true;
 	}
-	@Override
-	public void plus(function f1)
-	{
-		add_new_function(f1);
-		this._op = Operation.Plus;
-	}	
-	@Override
-	public void mul(function f1) 
-	{
-		add_new_function(f1);
-		this._op = Operation.Times;
+
+	private boolean compareDouble(double d1, double d2) {
+		return Math.abs(d2-d1) < Monom.EPSILON;
 	}
+
 	@Override
-	public void div(function f1)
-	{
-		add_new_function(f1);
-		this._op = Operation.Divid;
+	public String toString() {
+		if(op == Operation.None)
+			return left.toString();
+		return operationToString(op)+"("+left+","+right+")";
 	}
-	@Override
-	public void max(function f1) 
-	{
-		add_new_function(f1);
-		this._op = Operation.Max;
-	}
-	@Override
-	public void min(function f1) 
-	{
-		add_new_function(f1);
-		this._op = Operation.Min;
-	}
-	@Override
-	public void comp(function f1) 
-	{
-		add_new_function(f1);
-		this._op = Operation.Comp;
-	}
-	@Override
-	public String toString()
-	{
-		String ans =this.getOp().toString();
-		if(this.getOp() == Operation.Times) ans = "mul";
-		else if(this.getOp() == Operation.Divid) ans = "div";
-		return ans.toLowerCase()+"("+this._left+","+this._right+")";
-	}
-	@Override
-	public function left() 
-	{
-		return this._left;
-	}
-	@Override
-	public function right() 
-	{
-		return this._right;
-	}
-	@Override
-	public Operation getOp() 
-	{
-		return this._op;
-	}
-	//Private methods
-	private void add_new_function(function f1)
-	{
-		if(this._right != null)
-		{
-			function new_left = new ComplexFunction(this.getOp().toString(), this._left, this._right);
-			this._left = new_left;
+	/**
+	 * Convert String to {@link Operation} by the format in {@link Operation}
+	 * @param s the string we want to convert to operation
+	 * @return the converted {@link Operation} 
+	 */
+	static private Operation stringtoOperation(String s) {
+		s = s.toLowerCase();
+		switch (s) {
+
+		case "plus":
+			return Operation.Plus;
+
+		case "mul":
+			return Operation.Times;
+
+		case "div":
+			return Operation.Divid;
+
+		case "max":
+			return Operation.Max;
+
+		case "min":
+			return Operation.Min;
+
+		case "comp":
+			return Operation.Comp;
+
+		default:
+			throw new RuntimeException("Operation '"+s+"' unknown");
+
 		}
-		this._right = f1;
 	}
-	//A private function that removes spaces from a given String.
-	private String remove_spaces(String text)
-	{
-		String text_with_no_spaces = "";
-		for (int i=0; i<text.length(); i++) 
-		{
-			if (text.charAt(i)==' ') continue;
-			text_with_no_spaces=""+text_with_no_spaces+text.charAt(i);
+	/**
+	 * Convert {@link Operation} to String by the format in {@link Operation}
+	 * @param op the operation we want to convert to string 
+	 * @return the converted string 
+	 */
+	static private String operationToString(Operation op) {
+		switch (op) {
+
+		case Plus:
+			return "plus";
+
+		case Times:
+			return "mul";
+
+		case Divid:
+			return "div";
+
+		case Max:
+			return "max";
+
+		case Min:
+			return "min";
+
+		case Comp:
+			return "comp";
+
+		default:
+			throw new RuntimeException("Operation not soppost to br used");
+
 		}
-		return text_with_no_spaces;
 	}
 }

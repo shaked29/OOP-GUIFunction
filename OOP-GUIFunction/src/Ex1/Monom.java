@@ -28,6 +28,7 @@ public Monom(double a, int b)
 	}
 	public Monom(Monom ot) {
 		this(ot.get_coefficient(), ot.get_power());
+	
 	}
 
 	public double get_coefficient() {
@@ -189,7 +190,9 @@ public Monom(double a, int b)
 		double cof=0;
 		if(!s.contains("x"))
 			cof=parseDouble(s);
-		else if(s.indexOf('x')==1) {
+		else if(s.indexOf("x")==0) 
+			cof=1;
+		else if(s.indexOf("x")==1) {
 			char op=s.charAt(0);
 			if(op=='-')cof=-1;
 			else if(op=='+')cof=1;

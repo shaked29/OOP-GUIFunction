@@ -7,31 +7,35 @@ import Ex1.Polynom;
 import Ex1.function;
 public class ComplexFunctionTest 
 {
+	
 	@Test
 	public void testComplexFunctionFunction() 
 	{
 		String poly_str = "3.0x^2";
 		Polynom p = new Polynom(poly_str);
 		ComplexFunction cf = new ComplexFunction(p);
-		assertTrue(cf.left() == p);
+		assertTrue(cf.left().equals(p));
 		assertTrue(cf.right() == null);
 		assertTrue(cf.getOp() == Operation.None);
 	}
+	
 	@Test
 	public void testComplexFunctionStringFunctionFunction()
 	{
-		String poly_str = "2.0x^2+2.0x";
-		String poly_str2 = "3.0x^2+3.0x";
+		String poly_str = "2.0x+2.0x^2";
+		String poly_str2 = "3.0x+3.0x^2";
 		Polynom p = new Polynom(poly_str);
 		Polynom p2 = new Polynom(poly_str2);
 		ComplexFunction cf = new ComplexFunction("plus",p,p2);
 		ComplexFunction cf2 = new ComplexFunction("plus",p,cf);
-		String check = "plus(2.0x^2+2.0x^1,plus(2.0x^2+2.0x^1,3.0x^2+3.0x^1))";
+		String check = "plus(2.0x+2.0x^2,plus(2.0x+2.0x^2,3.0x+3.0x^2))";
 		assertTrue(cf.getOp().equals(Operation.Plus));
-		assertTrue(cf.left() == p);
-		assertTrue(cf.right() == p2);
+		assertTrue(cf.left().equals(p));
+		assertTrue(cf.right() .equals(p2));
+		
 		assertEquals(check, cf2.toString());
 	}
+	
 	@Test
 	public void testF() 
 	{
@@ -49,10 +53,10 @@ public class ComplexFunctionTest
 	@Test
 	public void testInitFromString() 
 	{
-		String text = "plus(plus(2.0x^1,3.0x^2),mul(2.0x^2,3.0x^2))";
-		ComplexFunction cf = new ComplexFunction(null);
+		String text = "plus(plus(2.0x,3.0x^2),mul(  2.0x^2,3.0x^2))";
+		ComplexFunction cf = new ComplexFunction();
 		function func = cf.initFromString(text);
-		assertEquals(text, func.toString());
+		assertEquals(text.replace(" ", ""), func.toString());
 	}
 	@Test
 	public void testCopy() 
@@ -104,13 +108,15 @@ public class ComplexFunctionTest
 		cf_mul.mul(p); //cf_mul : mul(mul(mul(2.0x,3.0x),2.0x)),2.0x) = 24.0x^4
 		assertTrue(cf_mul.f(2)==384); // 24.0 * 2^4 
 	}
+	
 	@Test
 	public void testDiv() 
 	{
-		String poly_str = "3.0x^5";
 		String poly_str2 = "x";
-		Polynom p = new Polynom(poly_str);
+		String poly_str = "3.0x^5";
 		Polynom p2 = new Polynom(poly_str2);
+		Polynom p = new Polynom(poly_str);
+		
 		ComplexFunction cf_div = new ComplexFunction("div",p,p2); //cf_div : div(3.0x^5,x) = 3.0x^4
 		cf_div.div(p2); //cf_div : div(div(3.0x^5,x),x) = 3.0x^3
 		cf_div.div(p2); //cf_div : div(div(div(3.0x^5,x),x),x) = 3.0x^2
@@ -199,4 +205,5 @@ public class ComplexFunctionTest
 		ComplexFunction cf = new ComplexFunction("min",p,p2);
 		assertEquals(Operation.Min, cf.getOp());
 	}
+
 }

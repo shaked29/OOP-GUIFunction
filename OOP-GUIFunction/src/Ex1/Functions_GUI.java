@@ -1,134 +1,53 @@
 package Ex1;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.awt.Font;
 import java.util.Iterator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-public class Functions_GUI implements functions
-{
-	private ArrayList<function> my_list;
+
+public class Functions_GUI extends ArrayList<function> implements functions {
 	private Color [] colors = {Color.BLUE, Color.DARK_GRAY, Color.MAGENTA, Color.GREEN, Color.ORANGE, Color.CYAN, Color.RED, Color.PINK };
-	public Functions_GUI()
-	{
-		this.my_list = new ArrayList<function>();
-	}
-	@Override
-	public int size() 
-	{
-		return my_list.size();
-	}
-	@Override
-	public boolean isEmpty()
-	{
-		return my_list.isEmpty();
-	}
-	@Override
-	public boolean contains(Object o) 
-	{
-		return my_list.contains(o);
-	}
-	@Override
-	public Iterator<function> iterator() 
-	{
-		return my_list.iterator();
-	}
-	@Override
-	public Object[] toArray() 
-	{
-		return my_list.toArray();
-	}
-	@Override
-	public <T> T[] toArray(T[] a) 
-	{
-		return my_list.toArray(a);
-	}
-	@Override
-	public boolean add(function e) 
-	{
-		return my_list.add(e);
-	}
-	@Override
-	public boolean remove(Object o) 
-	{
-		return my_list.remove(o);
-	}
-	@Override
-	public boolean containsAll(Collection<?> c) 
-	{
-		return my_list.containsAll(c);
-	}
-	@Override
-	public boolean addAll(Collection<? extends function> c)
-	{
-		return my_list.addAll(c);
-	}
-	@Override
-	public boolean removeAll(Collection<?> c) 
-	{
-		return my_list.removeAll(c);
-	}
-	@Override
-	public boolean retainAll(Collection<?> c)
-	{
-		return my_list.retainAll(c);
-	}
-	@Override
-	public void clear() 
-	{
-		my_list.clear();
-	}
+	/**
+	 * class thats can hold a collection of functions,
+	 * write and read the functions to file and show them on GUI.
+	 * 
+	 * @author Shaked Aviad
+	 */
 	@Override
 	public void initFromFile(String file) throws IOException 
 	{
-		try 
-		{ 
-			FileReader file_reader = new FileReader(file); 
-			BufferedReader buffer_reader = new BufferedReader(file_reader);
-			String line = buffer_reader.readLine();
-			function new_function = new ComplexFunction();
-			my_list.add(new_function.initFromString(line));
-			for(int i=1; line!=null; i=i+1) 
-			{
-				line = buffer_reader.readLine();
-				if (line != null) my_list.add(new_function.initFromString(line));
-			}
-			buffer_reader.close();     
-			file_reader.close();     
+		java.util.List<String> s=null;
+		try {
+			s = Files.readAllLines(Paths.get(file));
+		}catch (IOException  e) {
+			throw new IOException("file '"+file+"' not exist");
 		}
-		catch(IOException ex) 
-		{  
-			System.out.print("Error reading file\n" + ex);
-			System.exit(2);
+		clear();
+		ComplexFunction cf=new ComplexFunction(new Monom(0,0));
+		for (int i = 0; i < s.size(); i++) {
+			try {
+				add(cf.initFromString(s.get(i)));
+			} catch (Exception e) {
+				throw new IOException("file is not in correct format");
+			}
 		}
 	}
 	@Override
 	public void saveToFile(String file) throws IOException 
 	{
-		try 
-		{ 
-			FileWriter fw = new FileWriter(file);  
-			PrintWriter outs = new PrintWriter(fw);
-			for(int i = 0; i < my_list.size(); i++)
-			{
-				outs.println("f(x)= "+my_list.get(i).toString());
-			}
-			outs.close(); 
-			fw.close();
+		ArrayList<String> s=new ArrayList<String>();
+		for (int i = 0; i < size(); i++) {
+			s.add(get(i).toString());
 		}
-		catch(IOException ex) 
-		{  
-			System.out.print("Error writing file\n" + ex);
-		}		
+		Files.write(Paths.get(file), s);
 	}
 	@Override
 	public void drawFunctions(int width, int height, Range rx, Range ry, int resolution) 
@@ -158,7 +77,7 @@ public class Functions_GUI implements functions
 		StdDraw.line(0, ry.get_min(), 0,ry.get_max());
 		StdDraw.line(rx.get_min(), 0, ry.get_max(), 0);
 		StdDraw.setPenRadius();
-		int size = my_list.size();
+		int size = size();
 		double[] x_parameters = new double[resolution+1];
 		double[][] y_parameters = new double[size][resolution+1];
 		double x_step = (rx.get_max()-rx.get_min())/resolution;
@@ -166,14 +85,14 @@ public class Functions_GUI implements functions
 		for (int i=0; i<=resolution; i++) 
 		{
 			x_parameters[i] = x0;
-			for(int a=0;a<size;a++)	y_parameters[a][i] = my_list.get(a).f(x_parameters[i]);
+			for(int a=0;a<size;a++)	y_parameters[a][i] = get(a).f(x_parameters[i]);
 			x0+=x_step;
 		}
 		for(int a=0;a<size;a++) 
 		{
 			int c = a%colors.length;
 			StdDraw.setPenColor(colors[c]);
-			System.out.println(a+") "+colors[a]+"  f(x)= "+my_list.get(a));
+			System.out.println(a+") "+colors[a]+"  f(x)= "+get(a));
 			for (int i = 0; i < resolution; i++) StdDraw.line(x_parameters[i], y_parameters[a][i], x_parameters[i+1], y_parameters[a][i+1]);
 		}	
 	}
@@ -207,4 +126,5 @@ public class Functions_GUI implements functions
 		Range ry = new Range(ry_min, ry_max);
 		drawFunctions(width,height,rx,ry,resolution);
 	} 
+
 }
